@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#111113">
+    <title>Admin Dashboard - لوحة التحكم الشاملة</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        (function () {
+            const tg = window.Telegram.WebApp;
+            try { tg.expand(); } catch (e) { }
+            const isDark = tg.colorScheme === 'dark';
+            const bgColor = isDark ? '#111113' : '#ffffff';
+            document.write('<style>#loader { background: ' + bgColor + ' !important; }</style>');
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+            --accent-dark: #6d28d9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius: 18px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --sidebar-width: 280px;
+        }
+
+        .dark-mode {
+            --bg: #1a1a1c;
+            --bg-elevated: #111113;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-p: #fafafa;
+            --text-s: #a1a1aa;
+            --input-bg: #111113;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-p);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            height: 70px;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        .nav-trigger {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: var(--card-glass); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; color: var(--text-p);
+        }
+
+        .page-title { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+
+        .sidebar {
+            position: fixed; top: 0; right: 0; width: var(--sidebar-width); height: 100%;
+            background: var(--bg-elevated); z-index: 3000;
+            transform: translateX(100%); transition: transform 0.25s var(--ease);
+            padding: 30px 20px; display: flex; flex-direction: column; gap: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar.open { transform: translateX(0); }
+
+        .sidebar-overlay {
+            position: fixed; inset: 0; z-index: 2500; background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: 0.2s;
+        }
+        .sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+        .side-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.1rem; }
+        .side-brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+
+        .side-nav { display: flex; flex-direction: column; gap: 10px; }
+        .nav-item {
+            padding: 14px 18px; border-radius: 14px; display: flex; align-items: center; gap: 12px;
+            color: var(--text-s); font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .nav-item:hover, .nav-item.active { background: var(--card-glass); color: var(--accent); border: 1px solid var(--accent); }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .info-card {
+            background: var(--bg-elevated); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .info-card-val { font-size: 1.3rem; font-weight: 800; margin-top: 4px; }
+        .info-card-lbl { font-size: 0.72rem; color: var(--text-s); font-weight: 700; }
+
+        .card {
+            background: var(--bg-elevated); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow);
+        }
+
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
+        .chip {
+            padding: 8px 16px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+            border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-s);
+        }
+        .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .sub-card {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px;
+            padding: 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .sub-actions { display: flex; gap: 8px; margin-top: 6px; }
+        .btn-action {
+            flex: 1; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.82rem;
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-approve { background: var(--success); color: white; }
+        .btn-reject { background: var(--error); color: white; }
+        .btn-copy { background: var(--card-glass); color: var(--text-p); border: 1px solid var(--border); }
+
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-s); margin-bottom: 6px; }
+        .form-input {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px 14px; color: var(--text-p); outline: none; font-size: 0.9rem;
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.8);
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-sheet {
+            width: 100%; max-width: 420px; background: var(--bg-elevated);
+            border-radius: 20px; padding: 24px; border: 1px solid var(--border);
+        }
+
+        .toast-container { position: fixed; top: 80px; left: 15px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px;
+            padding: 12px 18px; box-shadow: var(--shadow); transform: translateX(-120%); transition: 0.3s;
+        }
+        .toast.show { transform: translateX(0); }
+
+        #loader { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        #loader.hide { opacity: 0; pointer-events: none; }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body class="dark-mode">
+
+    <div id="loader"><div class="spinner"></div></div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="side-brand">
+            <div class="side-brand-dot"></div>
+            <span>لوحة الأدمن - Gmail Buyer</span>
+        </div>
+        <nav class="side-nav">
+            <div class="nav-item active" onclick="switchTab('submissions')">
+                <i class="fa-solid fa-inbox"></i>
+                <span>مراجعة الإيميلات</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('categories')">
+                <i class="fa-solid fa-tags"></i>
+                <span>إدارة الفئات والأسعار</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('withdrawals')">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+                <span>طلبات السحب</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('users')">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>المستخدمين</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('settings')">
+                <i class="fa-solid fa-sliders"></i>
+                <span>إعدادات البوت</span>
+            </div>
+        </nav>
+    </aside>
+
+    <header class="top-bar">
+        <button class="nav-trigger" onclick="toggleSidebar(true)"><i class="fa-solid fa-bars"></i></button>
+        <div class="page-title">
+            <i class="fa-solid fa-user-shield" style="color: var(--accent);"></i>
+            <span>لوحة التحكم الرئيسية</span>
+        </div>
+        <button class="btn-action btn-copy" onclick="exportData()" style="padding: 8px 14px;">
+            <i class="fa-solid fa-file-export"></i> تصدير المقبولة
+        </button>
+    </header>
+
+    <main class="main-content">
+
+        <!-- Top Stats -->
+        <div class="stats-grid">
+            <div class="info-card">
+                <div>
+                    <div class="info-card-lbl">إجمالي المرفوع</div>
+                    <div class="info-card-val" id="statTotal">0</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div>
+                    <div class="info-card-lbl">معلق (Pending)</div>
+                    <div class="info-card-val" id="statPending" style="color: var(--warning);">0</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div>
+                    <div class="info-card-lbl">مقبول (Approved)</div>
+                    <div class="info-card-val" id="statApproved" style="color: var(--success);">0</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div>
+                    <div class="info-card-lbl">سحوبات معلقة</div>
+                    <div class="info-card-val" id="statWithdraws">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Submissions Review View -->
+        <section class="view-panel active" id="panel-submissions">
+            <div class="filter-bar">
+                <div class="chip active" onclick="filterAdminSubmissions('PENDING')">معلق 🟡</div>
+                <div class="chip" onclick="filterAdminSubmissions('APPROVED')">مقبول 🟢</div>
+                <div class="chip" onclick="filterAdminSubmissions('REJECTED')">مرفوض 🔴</div>
+                <div class="chip" onclick="filterAdminSubmissions('ALL')">الكل</div>
+            </div>
+
+            <div id="adminSubmissionsList"></div>
+        </section>
+
+        <!-- 2. Categories & Prices View -->
+        <section class="view-panel" id="panel-categories">
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 14px;">إضافة / تعديل فئة إيميل</h3>
+                <form onsubmit="handleCategorySave(event)">
+                    <div class="form-group">
+                        <label class="form-label">اسم الفئة (مثال: Gmail 2022+)</label>
+                        <input type="text" class="form-input" id="catName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الوصف / الشروط</label>
+                        <input type="text" class="form-input" id="catDesc" placeholder="مثال: يرجى التأكد من تفعيل 2FA">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">سعر الشراء للحساب ($)</label>
+                        <input type="number" step="0.05" class="form-input" id="catPrice" required>
+                    </div>
+                    <button type="submit" class="btn-action btn-approve" style="width: 100%; padding: 12px;">حفظ الفئة</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 14px;">الفئات الحالية</h3>
+                <div id="adminCategoriesList"></div>
+            </div>
+        </section>
+
+        <!-- 3. Withdrawals View -->
+        <section class="view-panel" id="panel-withdrawals">
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 14px;">طلبات السحب المقدمة</h3>
+                <div id="adminWithdrawalsList"></div>
+            </div>
+        </section>
+
+        <!-- 4. Settings View -->
+        <section class="view-panel" id="panel-settings">
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-bottom: 14px;">إعدادات البوت العامة</h3>
+                <form onsubmit="handleSettingsSave(event)">
+                    <div class="form-group">
+                        <label class="form-label">الحد الأدنى للسحب ($)</label>
+                        <input type="number" step="0.5" class="form-input" id="cfgMinWithdraw" value="1.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">وضع الصيانة</label>
+                        <select class="form-input" id="cfgMaintenance">
+                            <option value="off">إيقاف (البوت يعمل طبيعي)</option>
+                            <option value="on">تفعيل وضع الصيانة</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-action btn-approve" style="width: 100%; padding: 12px;">حفظ الإعدادات</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Reject Modal -->
+    <div class="modal-overlay" id="rejectModal">
+        <div class="modal-sheet">
+            <h3 style="margin-bottom: 12px; font-size: 1rem;">سبب رفض الإيميل</h3>
+            <input type="hidden" id="rejectSubId">
+            <div class="form-group">
+                <input type="text" class="form-input" id="rejectReasonInput" placeholder="مثال: كلمة السر غير صحيحة">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-action btn-reject" onclick="confirmReject()">تأكيد الرفض</button>
+                <button class="btn-action btn-copy" onclick="closeRejectModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        let adminSubmissions = [];
+        let activeAdminFilter = 'PENDING';
+
+        async function initAdmin() {
+            loadAdminData();
+            setTimeout(() => document.getElementById('loader').classList.add('hide'), 500);
+        }
+
+        async function loadAdminData() {
+            try {
+                const resp = await fetch(`/api/admin/data?init_data=${encodeURIComponent(tg.initData || '')}`);
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    document.getElementById('statTotal').innerText = data.stats.total;
+                    document.getElementById('statPending').innerText = data.stats.pending;
+                    document.getElementById('statApproved').innerText = data.stats.approved;
+                    document.getElementById('statWithdraws').innerText = data.stats.pending_withdrawals;
+
+                    adminSubmissions = data.submissions || [];
+                    renderAdminSubmissions();
+                    renderAdminCategories(data.categories || []);
+                    renderAdminWithdrawals(data.withdrawals || []);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function filterAdminSubmissions(status) {
+            activeAdminFilter = status;
+            renderAdminSubmissions();
+        }
+
+        function renderAdminSubmissions() {
+            const container = document.getElementById('adminSubmissionsList');
+            container.innerHTML = '';
+            let list = adminSubmissions;
+
+            if (activeAdminFilter !== 'ALL') {
+                list = adminSubmissions.filter(s => s.status === activeAdminFilter);
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-s);">لا توجد بيانات لهذه التصفية</div>';
+                return;
+            }
+
+            list.forEach(sub => {
+                const copyText = `${sub.email}:${sub.password}:${sub.recovery || ''}`;
+                container.innerHTML += `
+                    <div class="sub-card">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${sub.email}</strong>
+                            <span style="color:var(--success); font-weight:800;">$${sub.price.toFixed(2)}</span>
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--text-s);">
+                            كلمة السر: <code>${sub.password}</code> | الاسترداد: <code>${sub.recovery || 'لا يوجد'}</code>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-s);">
+                            المستخدم: Telegram ID ${sub.user_id} | الفئة: ${sub.category_name}
+                        </div>
+                        <div class="sub-actions">
+                            <button class="btn-action btn-copy" onclick="copyString('${copyText}')"><i class="fa-solid fa-copy"></i> نسخ</button>
+                            ${sub.status === 'PENDING' ? `
+                                <button class="btn-action btn-approve" onclick="approveSubmission(${sub.id})"><i class="fa-solid fa-check"></i> قبول</button>
+                                <button class="btn-action btn-reject" onclick="openRejectModal(${sub.id})"><i class="fa-solid fa-xmark"></i> رفض</button>
+                            ` : `<span style="font-size:0.8rem; font-weight:800; align-self:center;">الحالة: ${sub.status}</span>`}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function approveSubmission(subId) {
+            try {
+                const resp = await fetch('/api/admin/approve-submission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ init_data: tg.initData || '', submission_id: subId })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    showToast('تم قبول الإيميل وترصيد الرصيد للمستخدم');
+                    loadAdminData();
+                }
+            } catch (err) {
+                showToast('حدث خطأ', 'error');
+            }
+        }
+
+        function openRejectModal(subId) {
+            document.getElementById('rejectSubId').value = subId;
+            document.getElementById('rejectModal').style.display = 'flex';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+        }
+
+        async function confirmReject() {
+            const subId = document.getElementById('rejectSubId').value;
+            const reason = document.getElementById('rejectReasonInput').value.trim() || 'بيانات الحساب غير صحيحة';
+            try {
+                const resp = await fetch('/api/admin/reject-submission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ init_data: tg.initData || '', submission_id: parseInt(subId), reason: reason })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    showToast('تم رفض الإيميل وإشعاره بالسبب');
+                    closeRejectModal();
+                    loadAdminData();
+                }
+            } catch (err) {
+                showToast('حدث خطأ', 'error');
+            }
+        }
+
+        function renderAdminCategories(list) {
+            const container = document.getElementById('adminCategoriesList');
+            container.innerHTML = '';
+            list.forEach(c => {
+                container.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+                        <div>
+                            <strong>${c.name}</strong>
+                            <div style="font-size:0.75rem; color:var(--text-s);">${c.description || ''}</div>
+                        </div>
+                        <div style="font-weight:800; color:var(--success);">$${c.price.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+        }
+
+        async function handleCategorySave(e) {
+            e.preventDefault();
+            const name = document.getElementById('catName').value.trim();
+            const desc = document.getElementById('catDesc').value.trim();
+            const price = parseFloat(document.getElementById('catPrice').value);
+            try {
+                const resp = await fetch('/api/admin/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ init_data: tg.initData || '', name, description: desc, price })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    showToast('تم حفظ الفئة بنجاح');
+                    document.getElementById('catName').value = '';
+                    document.getElementById('catDesc').value = '';
+                    document.getElementById('catPrice').value = '';
+                    loadAdminData();
+                }
+            } catch (err) {
+                showToast('خطأ بالاتصال', 'error');
+            }
+        }
+
+        function renderAdminWithdrawals(list) {
+            const container = document.getElementById('adminWithdrawalsList');
+            container.innerHTML = '';
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-s);">لا توجد طلبات سحب معلقة</div>';
+                return;
+            }
+            list.forEach(w => {
+                container.innerHTML += `
+                    <div class="sub-card">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${w.method} - ${w.address}</strong>
+                            <span style="font-weight:800;">$${w.amount.toFixed(2)}</span>
+                        </div>
+                        <div style="font-size:0.78rem; color:var(--text-s);">المستخدم Telegram ID: ${w.user_id}</div>
+                        <div class="sub-actions">
+                            <button class="btn-action btn-approve" onclick="handleWithdrawAction(${w.id}, 'APPROVE')">موافقة وسداد</button>
+                            <button class="btn-action btn-reject" onclick="handleWithdrawAction(${w.id}, 'REJECT')">رفض وإعادة الرصيد</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function handleWithdrawAction(wId, action) {
+            try {
+                const resp = await fetch('/api/admin/withdrawals/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ init_data: tg.initData || '', withdraw_id: wId, action: action })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    showToast('تم تحديث حالة طلب السحب');
+                    loadAdminData();
+                }
+            } catch (err) { showToast('حدث خطأ', 'error'); }
+        }
+
+        function exportData() {
+            const approved = adminSubmissions.filter(s => s.status === 'APPROVED');
+            let content = "Email,Password,Recovery,Price,Date\n";
+            approved.forEach(a => {
+                content += `${a.email},${a.password},${a.recovery || ''},${a.price},${a.created_at}\n`;
+            });
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'Approved_Gmail_Accounts.csv';
+            a.click();
+        }
+
+        function copyString(str) {
+            navigator.clipboard.writeText(str);
+            showToast('تم النسخ للحافظة');
+        }
+
+        function switchTab(t) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`panel-${t}`).classList.add('active');
+            toggleSidebar(false);
+        }
+
+        function toggleSidebar(o) {
+            document.getElementById('sidebar').classList.toggle('open', o);
+            document.getElementById('sidebarOverlay').classList.toggle('show', o);
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<div style="font-size:0.85rem; font-weight:700;">${msg}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', initAdmin);
+    </script>
+</body>
+</html>

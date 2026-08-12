@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#111113">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gmail Buying Store - شراء حسابات الإيميل</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        (function () {
+            const tg = window.Telegram.WebApp;
+            try { tg.expand(); } catch (e) { }
+            const isDark = tg.colorScheme === 'dark';
+            const bgColor = isDark ? '#111113' : '#ffffff';
+            document.write('<style>#loader { background: ' + bgColor + ' !important; }</style>');
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --accent: #5865f2;
+            --accent-glow: rgba(88, 101, 242, 0.3);
+            --accent-purple: #8b5cf6;
+            --accent-dark: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --radius: 18px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --sidebar-width: 280px;
+        }
+
+        .dark-mode {
+            --bg: #1a1a1c;
+            --bg-elevated: #111113;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-p: #fafafa;
+            --text-s: #a1a1aa;
+            --sidebar-bg: var(--bg-elevated);
+            --modal-bg: #111113;
+            --input-bg: #111113;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .light-mode {
+            --bg: #f1f3f5;
+            --bg-elevated: #ffffff;
+            --card-glass: rgba(0, 0, 0, 0.03);
+            --border: rgba(0, 0, 0, 0.08);
+            --text-p: #0f172a;
+            --text-s: #64748b;
+            --sidebar-bg: var(--bg-elevated);
+            --modal-bg: #ffffff;
+            --input-bg: #f1f2f6;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-purple) transparent;
+        }
+
+        [dir="ltr"] {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        [dir="rtl"] {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-p);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Header */
+        .top-bar {
+            height: 70px;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .nav-trigger {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--card-glass);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-p);
+        }
+
+        .page-title {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: var(--card-glass);
+            border: 1px solid var(--border);
+            color: var(--text-p);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            border: 1px solid var(--accent-glow);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+        }
+
+        /* Sidebar Nav */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            inset-inline-start: 0;
+            width: var(--sidebar-width);
+            height: 100%;
+            background: var(--bg-elevated);
+            z-index: 3000;
+            transform: translateX(calc(-100% * var(--sidebar-dir-mult, 1)));
+            transition: transform 0.25s var(--ease);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            box-shadow: var(--shadow);
+            overflow-y: auto;
+        }
+
+        body[dir="rtl"] {
+            --sidebar-dir-mult: -1;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2500;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s var(--ease);
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .side-brand-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+        }
+
+        .side-brand-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .side-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .nav-item {
+            padding: 14px 18px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-s);
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--card-glass);
+            border: 1px solid var(--accent-purple);
+            color: var(--accent-purple);
+        }
+
+        .nav-item i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main View Panels */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .view-panel {
+            display: none;
+            animation: fadeIn 0.3s var(--ease);
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Overview Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .info-card-l {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-card-lbl {
+            font-size: 0.72rem;
+            color: var(--text-s);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .info-card-val {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-p);
+        }
+
+        .info-card-val span {
+            font-size: 0.8rem;
+            color: var(--text-s);
+        }
+
+        .info-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Form Card */
+        .card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-p);
+        }
+
+        .tab-group {
+            display: flex;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 18px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-s);
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            background: transparent;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-purple);
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-s);
+            margin-bottom: 6px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: var(--text-p);
+            font-family: inherit;
+            font-size: 0.92rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.98rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px var(--accent-glow);
+            transition: 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .primary-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Filter Chips & List */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-s);
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+
+        .chip.active {
+            background: var(--accent-purple);
+            color: white;
+            border-color: var(--accent-purple);
+        }
+
+        .sub-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .sub-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sub-email {
+            font-weight: 700;
+            font-size: 0.95rem;
+            word-break: break-all;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .badge-approved { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .badge-rejected { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+        .sub-details {
+            font-size: 0.8rem;
+            color: var(--text-s);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            inset-inline-end: 15px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 18px;
+            min-width: 260px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            transform: translateX(120%);
+            transition: transform 0.3s var(--ease);
+            pointer-events: auto;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Loader Overlay */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        #loader.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent-purple);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body class="dark-mode">
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="side-brand">
+            <div class="side-brand-dot"></div>
+            <span class="side-brand-name">Gmail Buyer Bot</span>
+        </div>
+        <nav class="side-nav">
+            <div class="nav-item active" onclick="switchTab('submit')">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span data-i18n="nav_submit">تسليم الإيميلات</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('submissions')">
+                <i class="fa-solid fa-list-check"></i>
+                <span data-i18n="nav_history">سجل تسليماتي</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('rates')">
+                <i class="fa-solid fa-tags"></i>
+                <span data-i18n="nav_rates">أسعار الشراء</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('withdraw')">
+                <i class="fa-solid fa-wallet"></i>
+                <span data-i18n="nav_withdraw">طلب سحب الأرباح</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('referral')">
+                <i class="fa-solid fa-users"></i>
+                <span data-i18n="nav_referral">برنامج الإحالة</span>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Top Header -->
+    <header class="top-bar">
+        <button class="nav-trigger" onclick="toggleSidebar(true)">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="page-title" id="pageTitle">
+            <i class="fa-solid fa-envelope-open-text" style="color: var(--accent-purple);"></i>
+            <span id="titleText">شراء إيميلات Gmail</span>
+        </div>
+        <div class="header-actions">
+            <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">EN</button>
+            <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Top Overview Stats -->
+        <div class="stats-grid">
+            <div class="info-card">
+                <div class="info-card-l">
+                    <span class="info-card-lbl" data-i18n="lbl_balance">الرصيد المتاح</span>
+                    <div class="info-card-val"><span id="userBalance">0.00</span> <span>USD</span></div>
+                </div>
+                <div class="info-card-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-l">
+                    <span class="info-card-lbl" data-i18n="lbl_total_earned">إجمالي أرباحك</span>
+                    <div class="info-card-val"><span id="userTotalEarned">0.00</span> <span>USD</span></div>
+                </div>
+                <div class="info-card-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-l">
+                    <span class="info-card-lbl" data-i18n="lbl_approved_count">المقبولة</span>
+                    <div class="info-card-val"><span id="approvedCount">0</span></div>
+                </div>
+                <div class="info-card-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
+        </div>
+
+        <!-- 1. Submit View -->
+        <section class="view-panel active" id="panel-submit">
+            <div class="card">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-paper-plane" style="color: var(--accent-purple);"></i>
+                    <span data-i18n="title_submit">تقديم حسابات Gmail للبيع</span>
+                </h3>
+
+                <div class="tab-group">
+                    <button class="tab-btn active" id="btnTabSingle" onclick="setSubmitMode('single')" data-i18n="tab_single">إيميل فردي</button>
+                    <button class="tab-btn" id="btnTabBulk" onclick="setSubmitMode('bulk')" data-i18n="tab_bulk">تسليم جماعي (Bulk)</button>
+                </div>
+
+                <form id="submitForm" onsubmit="handleFormSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lbl_category">اختر فئة الإيميل</label>
+                        <select class="form-select" id="catSelect" onchange="updateEstPrice()">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Single Mode -->
+                    <div id="singleModeFields">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lbl_email">البريد الإلكتروني (Gmail)</label>
+                            <input type="email" class="form-input" id="emailInput" placeholder="example@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lbl_pass">كلمة السر (Password)</label>
+                            <input type="text" class="form-input" id="passInput" placeholder="********">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lbl_recovery">بريد الاسترداد (Recovery Email)</label>
+                            <input type="email" class="form-input" id="recoveryInput" placeholder="recovery@mail.com">
+                        </div>
+                    </div>
+
+                    <!-- Bulk Mode -->
+                    <div id="bulkModeFields" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lbl_bulk_desc">أدخل الإيميلات (سطر لكل حساب بالشكل email:pass:recovery)</label>
+                            <textarea class="form-textarea" id="bulkInput" placeholder="user1@gmail.com:pass1:rec1@mail.com&#10;user2@gmail.com:pass2:rec2@mail.com"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 16px; font-size: 0.85rem; color: var(--text-s);">
+                        <span data-i18n="lbl_est_rate">سعر الحساب المقدر:</span> <strong id="estRateVal" style="color: var(--success);">$0.00</strong>
+                    </div>
+
+                    <button type="submit" class="primary-btn" id="submitBtn">
+                        <i class="fa-solid fa-check"></i>
+                        <span data-i18n="btn_submit">إرسال للمراجعة</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 2. Submissions History View -->
+        <section class="view-panel" id="panel-submissions">
+            <div class="filter-bar">
+                <div class="chip active" onclick="filterSubmissions('all')" data-i18n="filter_all">الكل</div>
+                <div class="chip" onclick="filterSubmissions('pending')" data-i18n="filter_pending">قيد المراجعة 🟡</div>
+                <div class="chip" onclick="filterSubmissions('approved')" data-i18n="filter_approved">مقبول 🟢</div>
+                <div class="chip" onclick="filterSubmissions('rejected')" data-i18n="filter_rejected">مرفوض 🔴</div>
+            </div>
+
+            <div id="submissionsList">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <!-- 3. Rates View -->
+        <section class="view-panel" id="panel-rates">
+            <div class="card">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-list-ol" style="color: var(--accent-purple);"></i>
+                    <span data-i18n="title_rates">قائمة أسعار الشراء الحالية</span>
+                </h3>
+                <div id="ratesList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Withdraw View -->
+        <section class="view-panel" id="panel-withdraw">
+            <div class="card">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent-purple);"></i>
+                    <span data-i18n="title_withdraw">طلب سحب الأرباح</span>
+                </h3>
+
+                <form onsubmit="handleWithdrawSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lbl_method">وسيلة الدفع / السحب</label>
+                        <select class="form-select" id="withdrawMethod">
+                            <option value="Vodafone Cash">Vodafone Cash (فودافون كاش)</option>
+                            <option value="USDT TRC20">USDT (TRC20)</option>
+                            <option value="Payeer">Payeer</option>
+                            <option value="Binance Pay">Binance Pay</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lbl_address">رقم الموبايل / عنوان المحفظة</label>
+                        <input type="text" class="form-input" id="withdrawAddress" placeholder="010xxxxxxx / Wallet Address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lbl_amount">المبلغ المطلوب بالدولار ($)</label>
+                        <input type="number" step="0.1" class="form-input" id="withdrawAmount" placeholder="Min: 1.0" required>
+                    </div>
+
+                    <button type="submit" class="primary-btn" id="withdrawBtn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span data-i18n="btn_request_withdraw">تأكيد طلب السحب</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title" data-i18n="title_withdraw_history">سجل طلبات السحب</h3>
+                <div id="withdrawHistoryList"></div>
+            </div>
+        </section>
+
+        <!-- 5. Referral View -->
+        <section class="view-panel" id="panel-referral">
+            <div class="card" style="text-align: center;">
+                <i class="fa-solid fa-gift" style="font-size: 3rem; color: var(--accent-purple); margin-bottom: 12px;"></i>
+                <h3 class="card-title" style="justify-content: center;" data-i18n="title_referral">ربح من الإحالات</h3>
+                <p style="font-size: 0.85rem; color: var(--text-s); margin-bottom: 16px;" data-i18n="desc_referral">
+                    شارِك رابطك الفريد مع أصدقائك واحصل على مكافأة لكل مستخدم جديد يسجل ويبيع إيميلاته!
+                </p>
+
+                <div class="form-group">
+                    <input type="text" class="form-input" id="refLinkInput" readonly style="text-align: center; font-weight: 700;">
+                </div>
+
+                <button class="primary-btn" onclick="copyRefLink()">
+                    <i class="fa-solid fa-copy"></i>
+                    <span data-i18n="btn_copy_link">نسخ رابط الإحالة</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        let currentLang = 'ar';
+        let submitMode = 'single';
+        let categoriesData = [];
+        let submissionsData = [];
+        let activeFilter = 'all';
+
+        const i18n = {
+            ar: {
+                nav_submit: "تسليم الإيميلات",
+                nav_history: "سجل تسليماتي",
+                nav_rates: "أسعار الشراء",
+                nav_withdraw: "طلب سحب الأرباح",
+                nav_referral: "برنامج الإحالة",
+                lbl_balance: "الرصيد المتاح",
+                lbl_total_earned: "إجمالي أرباحك",
+                lbl_approved_count: "المقبولة",
+                title_submit: "تقديم حسابات Gmail للبيع",
+                tab_single: "إيميل فردي",
+                tab_bulk: "تسليم جماعي (Bulk)",
+                lbl_category: "اختر فئة الإيميل",
+                lbl_email: "البريد الإلكتروني (Gmail)",
+                lbl_pass: "كلمة السر (Password)",
+                lbl_recovery: "بريد الاسترداد (Recovery Email)",
+                lbl_bulk_desc: "أدخل الإيميلات (سطر لكل حساب بالشكل email:pass:recovery)",
+                lbl_est_rate: "سعر الحساب المقدر:",
+                btn_submit: "إرسال للمراجعة",
+                filter_all: "الكل",
+                filter_pending: "قيد المراجعة 🟡",
+                filter_approved: "مقبول 🟢",
+                filter_rejected: "مرفوض 🔴",
+                title_rates: "قائمة أسعار الشراء الحالية",
+                title_withdraw: "طلب سحب الأرباح",
+                lbl_method: "وسيلة الدفع / السحب",
+                lbl_address: "رقم الموبايل / عنوان المحفظة",
+                lbl_amount: "المبلغ المطلوب بالدولار ($)",
+                btn_request_withdraw: "تأكيد طلب السحب",
+                title_withdraw_history: "سجل طلبات السحب",
+                title_referral: "ربح من الإحالات",
+                desc_referral: "شارك رابطك الفريد مع أصدقائك واحصل على مكافأة لكل مستخدم جديد يسجل عبر رابطك!",
+                btn_copy_link: "نسخ رابط الإحالة"
+            },
+            en: {
+                nav_submit: "Submit Emails",
+                nav_history: "My Submissions",
+                nav_rates: "Buy Rates",
+                nav_withdraw: "Withdraw",
+                nav_referral: "Referral System",
+                lbl_balance: "Available Balance",
+                lbl_total_earned: "Total Earned",
+                lbl_approved_count: "Approved",
+                title_submit: "Sell Gmail Accounts",
+                tab_single: "Single Email",
+                tab_bulk: "Bulk Submission",
+                lbl_category: "Select Category",
+                lbl_email: "Gmail Address",
+                lbl_pass: "Password",
+                lbl_recovery: "Recovery Email",
+                lbl_bulk_desc: "Enter emails (One per line: email:pass:recovery)",
+                lbl_est_rate: "Est. Rate per Account:",
+                btn_submit: "Submit for Review",
+                filter_all: "All",
+                filter_pending: "Pending 🟡",
+                filter_approved: "Approved 🟢",
+                filter_rejected: "Rejected 🔴",
+                title_rates: "Current Buy Rates",
+                title_withdraw: "Request Payout",
+                lbl_method: "Payment Method",
+                lbl_address: "Phone / Wallet Address",
+                lbl_amount: "Requested Amount ($)",
+                btn_request_withdraw: "Confirm Payout Request",
+                title_withdraw_history: "Payout History",
+                title_referral: "Referral Rewards",
+                desc_referral: "Share your unique referral link with friends and earn rewards for active users!",
+                btn_copy_link: "Copy Referral Link"
+            }
+        };
+
+        function initApp() {
+            const initData = tg.initData || '';
+            const user = tg.initDataUnsafe?.user || { id: 1234567, first_name: 'Guest' };
+            document.getElementById('userAvatar').innerText = (user.first_name || 'U').charAt(0).toUpperCase();
+            
+            // Set ref link
+            document.getElementById('refLinkInput').value = `https://t.me/YourBotUsername?start=${user.id}`;
+            
+            loadUserData();
+            setTimeout(() => document.getElementById('loader').classList.add('hide'), 500);
+        }
+
+        async function loadUserData() {
+            try {
+                const resp = await fetch(`/api/user/data?init_data=${encodeURIComponent(tg.initData || '')}`);
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    document.getElementById('userBalance').innerText = data.user.balance.toFixed(2);
+                    document.getElementById('userTotalEarned').innerText = data.user.total_earned.toFixed(2);
+                    document.getElementById('approvedCount').innerText = data.user.approved_count;
+                    
+                    categoriesData = data.categories || [];
+                    renderCategories();
+                    
+                    submissionsData = data.submissions || [];
+                    renderSubmissions();
+                    
+                    renderWithdrawHistory(data.withdrawals || []);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderCategories() {
+            const select = document.getElementById('catSelect');
+            const ratesList = document.getElementById('ratesList');
+            select.innerHTML = '';
+            ratesList.innerHTML = '';
+
+            categoriesData.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name} ($${cat.price.toFixed(2)})</option>`;
+                ratesList.innerHTML += `
+                    <div class="info-card">
+                        <div>
+                            <strong style="font-size: 0.95rem;">${cat.name}</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-s); margin-top: 2px;">${cat.description || 'حساب إيميل مطابق للشروط'}</div>
+                        </div>
+                        <div style="font-weight: 800; color: var(--success); font-size: 1.1rem;">$${cat.price.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            updateEstPrice();
+        }
+
+        function updateEstPrice() {
+            const catId = document.getElementById('catSelect').value;
+            const cat = categoriesData.find(c => c.id == catId);
+            if (cat) {
+                document.getElementById('estRateVal').innerText = `$${cat.price.toFixed(2)}`;
+            }
+        }
+
+        function setSubmitMode(mode) {
+            submitMode = mode;
+            document.getElementById('btnTabSingle').classList.toggle('active', mode === 'single');
+            document.getElementById('btnTabBulk').classList.toggle('active', mode === 'bulk');
+            document.getElementById('singleModeFields').style.display = mode === 'single' ? 'block' : 'none';
+            document.getElementById('bulkModeFields').style.display = mode === 'bulk' ? 'block' : 'none';
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const catId = document.getElementById('catSelect').value;
+            let items = [];
+
+            if (submitMode === 'single') {
+                const email = document.getElementById('emailInput').value.trim();
+                const pass = document.getElementById('passInput').value.trim();
+                const rec = document.getElementById('recoveryInput').value.trim();
+                if (!email || !pass) {
+                    showToast('يرجى إدخال البريد الإليكتروني وكلمة السر', 'error');
+                    return;
+                }
+                items.push({ email, pass, recovery: rec });
+            } else {
+                const text = document.getElementById('bulkInput').value.trim();
+                if (!text) {
+                    showToast('يرجى إدخال الإيميلات', 'error');
+                    return;
+                }
+                const lines = text.split('\n');
+                lines.forEach(line => {
+                    const parts = line.trim().split(':');
+                    if (parts.length >= 2) {
+                        items.push({ email: parts[0], pass: parts[1], recovery: parts[2] || '' });
+                    }
+                });
+            }
+
+            if (items.length === 0) {
+                showToast('صيغة البيانات غير صحيحة', 'error');
+                return;
+            }
+
+            document.getElementById('submitBtn').disabled = true;
+            try {
+                const resp = await fetch('/api/submit-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        init_data: tg.initData || '',
+                        category_id: parseInt(catId),
+                        items: items
+                    })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    showToast('تم تسليم الإيميلات بنجاح لمراجعة الأدمن');
+                    document.getElementById('emailInput').value = '';
+                    document.getElementById('passInput').value = '';
+                    document.getElementById('recoveryInput').value = '';
+                    document.getElementById('bulkInput').value = '';
+                    loadUserData();
+                    switchTab('submissions');
+                } else {
+                    showToast(res.message || 'حدث خطأ أثناء التسليم', 'error');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر', 'error');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function filterSubmissions(status) {
+            activeFilter = status;
+            document.querySelectorAll('.filter-bar .chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            renderSubmissions();
+        }
+
+        function renderSubmissions() {
+            const container = document.getElementById('submissionsList');
+            container.innerHTML = '';
+            let list = submissionsData;
+
+            if (activeFilter !== 'all') {
+                list = submissionsData.filter(s => s.status.toLowerCase() === activeFilter);
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-s);">لا توجد تسليمات حالياً</div>';
+                return;
+            }
+
+            list.forEach(item => {
+                const badgeClass = item.status === 'APPROVED' ? 'badge-approved' : (item.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
+                const badgeText = item.status === 'APPROVED' ? 'مقبول' : (item.status === 'REJECTED' ? 'مرفوض' : 'قيد المراجعة');
+                container.innerHTML += `
+                    <div class="sub-card">
+                        <div class="sub-header">
+                            <span class="sub-email">${item.email}</span>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                        <div class="sub-details">
+                            <span>الفئة: ${item.category_name}</span>
+                            <strong style="color: var(--success);">$${item.price.toFixed(2)}</strong>
+                        </div>
+                        ${item.reject_reason ? `<div style="font-size:0.75rem; color:var(--error);">سبب الرفض: ${item.reject_reason}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        async function handleWithdrawSubmit(e) {
+            e.preventDefault();
+            const method = document.getElementById('withdrawMethod').value;
+            const address = document.getElementById('withdrawAddress').value.trim();
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+
+            if (!address || !amount || amount <= 0) {
+                showToast('يرجى إدخال الحقول ببيانات صحيحة', 'error');
+                return;
+            }
+
+            document.getElementById('withdrawBtn').disabled = true;
+            try {
+                const resp = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        init_data: tg.initData || '',
+                        method: method,
+                        address: address,
+                        amount: amount
+                    })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    showToast('تم تقديم طلب السحب بنجاح');
+                    document.getElementById('withdrawAddress').value = '';
+                    document.getElementById('withdrawAmount').value = '';
+                    loadUserData();
+                } else {
+                    showToast(res.message || 'فشل تقديم الطلب', 'error');
+                }
+            } catch (err) {
+                showToast('خطأ بالاتصال', 'error');
+            } finally {
+                document.getElementById('withdrawBtn').disabled = false;
+            }
+        }
+
+        function renderWithdrawHistory(list) {
+            const container = document.getElementById('withdrawHistoryList');
+            container.innerHTML = '';
+            if (list.length === 0) {
+                container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-s); text-align:center;">لا توجد سحوبات سابقة</div>';
+                return;
+            }
+            list.forEach(w => {
+                const badge = w.status === 'APPROVED' ? 'badge-approved' : (w.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
+                container.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight:700; font-size:0.88rem;">${w.method} - ${w.address}</div>
+                            <div style="font-size:0.75rem; color:var(--text-s);">${w.created_at}</div>
+                        </div>
+                        <div style="text-align:end;">
+                            <div style="font-weight:800; color:var(--text-p);">$${w.amount.toFixed(2)}</div>
+                            <span class="badge ${badge}">${w.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`panel-${tabId}`).classList.add('active');
+            toggleSidebar(false);
+        }
+
+        function toggleSidebar(open) {
+            document.getElementById('sidebar').classList.toggle('open', open);
+            document.getElementById('sidebarOverlay').classList.toggle('show', open);
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = currentLang;
+            document.getElementById('langBtn').innerText = currentLang === 'ar' ? 'EN' : 'AR';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerText = i18n[currentLang][key];
+                }
+            });
+        }
+
+        function copyRefLink() {
+            const input = document.getElementById('refLinkInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('تم نسخ رابط الإحالة بنجاح');
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <i class="toast-icon fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'}" style="color: ${type === 'success' ? 'var(--success)' : 'var(--error)'};"></i>
+                <div style="font-size:0.85rem; font-weight:700;">${msg}</div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
