@@ -108,6 +108,7 @@
         .page-title {
             font-size: 1rem; font-weight: 800;
             display: flex; align-items: center; gap: 8px;
+            position: absolute; left: 50%; transform: translateX(-50%);
         }
 
         .header-actions { display: flex; align-items: center; gap: 10px; }
@@ -156,10 +157,11 @@
         .side-nav { display: flex; flex-direction: column; gap: 10px; flex: 1; }
         .nav-item {
             padding: 14px 18px; border-radius: 14px; display: flex; align-items: center; gap: 12px;
-            color: var(--text-s); font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: all 0.2s;
+            color: var(--text-s); font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: background 0.2s, color 0.2s;
+            border: 1px solid transparent;
         }
         .nav-item:hover, .nav-item.active {
-            background: var(--card-glass); border: 1px solid var(--accent-purple); color: var(--accent-purple);
+            background: var(--card-glass); border-color: var(--accent-purple); color: var(--accent-purple);
         }
 
         /* Main View Panels */
@@ -281,38 +283,37 @@
             <span class="side-brand-name">Gmail Buyer Bot</span>
         </div>
         <nav class="side-nav">
-            <div class="nav-item active" onclick="switchTab('submit')">
+            <div class="nav-item active" id="nav-submit" onclick="switchTab('submit')">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span>تسليم الإيميلات</span>
+                <span>Submit Emails</span>
             </div>
-            <div class="nav-item" onclick="switchTab('submissions')">
+            <div class="nav-item" id="nav-submissions" onclick="switchTab('submissions')">
                 <i class="fa-solid fa-list-check"></i>
-                <span>سجل تسليماتي</span>
+                <span>My Submissions</span>
             </div>
-            <div class="nav-item" onclick="switchTab('rates')">
+            <div class="nav-item" id="nav-rates" onclick="switchTab('rates')">
                 <i class="fa-solid fa-tags"></i>
-                <span>أسعار الشراء</span>
+                <span>Buy Rates</span>
             </div>
-            <div class="nav-item" onclick="switchTab('withdraw')">
+            <div class="nav-item" id="nav-withdraw" onclick="switchTab('withdraw')">
                 <i class="fa-solid fa-wallet"></i>
-                <span>طلب سحب الأرباح</span>
+                <span>Withdraw Earnings</span>
             </div>
-            <div class="nav-item" onclick="switchTab('referral')">
+            <div class="nav-item" id="nav-referral" onclick="switchTab('referral')">
                 <i class="fa-solid fa-users"></i>
-                <span>برنامج الإحالة</span>
+                <span>Referral Program</span>
             </div>
         </nav>
     </aside>
 
     <!-- Top Bar Header -->
-    <header class="top-bar">
+    <header class="top-bar" style="position: relative;">
         <button class="nav-trigger" onclick="toggleSidebar(true)"><i class="fa-solid fa-bars"></i></button>
-        <div class="page-title">
-            <i class="fa-solid fa-envelope-open-text" style="color: var(--accent-purple);"></i>
-            <span>شراء حسابات Gmail</span>
+        <div class="page-title" id="pageTitle">
+            <span>Submit Emails</span>
         </div>
-        <div class="header-actions">
-            <div class="user-avatar" id="userAvatar">U</div>
+        <div class="user-avatar" id="userAvatar">
+            <i class="fa-solid fa-user"></i>
         </div>
     </header>
 
@@ -323,21 +324,21 @@
         <div class="stats-grid">
             <div class="info-card">
                 <div>
-                    <div class="info-card-lbl">الرصيد المتاح</div>
+                    <div class="info-card-lbl">Available Balance</div>
                     <div class="info-card-val"><span id="userBalance">0.00</span> <span style="font-size: 0.8rem;">USD</span></div>
                 </div>
                 <div class="info-card-icon"><i class="fa-solid fa-dollar-sign"></i></div>
             </div>
             <div class="info-card">
                 <div>
-                    <div class="info-card-lbl">إجمالي الأرباح</div>
+                    <div class="info-card-lbl">Total Earned</div>
                     <div class="info-card-val"><span id="userTotalEarned">0.00</span> <span style="font-size: 0.8rem;">USD</span></div>
                 </div>
                 <div class="info-card-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);"><i class="fa-solid fa-chart-line"></i></div>
             </div>
             <div class="info-card">
                 <div>
-                    <div class="info-card-lbl">الإيميلات المقبولة</div>
+                    <div class="info-card-lbl">Approved Emails</div>
                     <div class="info-card-val"><span id="approvedCount">0</span></div>
                 </div>
                 <div class="info-card-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);"><i class="fa-solid fa-circle-check"></i></div>
@@ -349,32 +350,32 @@
             <div class="card">
                 <h3 class="card-title">
                     <i class="fa-solid fa-paper-plane" style="color: var(--accent-purple);"></i>
-                    <span>تقديم حسابات Gmail للبيع</span>
+                    <span>Submit Gmail Accounts</span>
                 </h3>
 
                 <div class="tab-group">
-                    <button class="tab-btn active" id="btnTabSingle" onclick="setSubmitMode('single')">إيميل فردي</button>
-                    <button class="tab-btn" id="btnTabBulk" onclick="setSubmitMode('bulk')">تسليم جماعي (Bulk)</button>
+                    <button class="tab-btn active" id="btnTabSingle" onclick="setSubmitMode('single')">Single Account</button>
+                    <button class="tab-btn" id="btnTabBulk" onclick="setSubmitMode('bulk')">Bulk Submit</button>
                 </div>
 
                 <form id="submitForm" onsubmit="handleFormSubmit(event)">
                     <div class="form-group">
-                        <label class="form-label">اختر فئة الإيميل</label>
+                        <label class="form-label">Select Email Category</label>
                         <select class="form-select" id="catSelect" onchange="updateEstPrice()"></select>
                     </div>
 
                     <!-- Single Mode -->
                     <div id="singleModeFields">
                         <div class="form-group">
-                            <label class="form-label">البريد الإلكتروني (Gmail)</label>
+                            <label class="form-label">Gmail Address</label>
                             <input type="email" class="form-input" id="emailInput" placeholder="example@gmail.com">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">كلمة السر (Password)</label>
-                            <input type="text" class="form-input" id="passInput" placeholder="********">
+                            <label class="form-label">Password</label>
+                            <input type="text" class="form-input" id="passInput" placeholder="••••••••">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">بريد الاسترداد (Recovery Email)</label>
+                            <label class="form-label">Recovery Email (optional)</label>
                             <input type="email" class="form-input" id="recoveryInput" placeholder="recovery@mail.com">
                         </div>
                     </div>
@@ -382,18 +383,18 @@
                     <!-- Bulk Mode -->
                     <div id="bulkModeFields" style="display: none;">
                         <div class="form-group">
-                            <label class="form-label">أدخل الإيميلات (سطر لكل حساب بالشكل email:pass:recovery)</label>
+                            <label class="form-label">Enter accounts (one per line: email:pass:recovery)</label>
                             <textarea class="form-textarea" id="bulkInput" placeholder="user1@gmail.com:pass1:rec1@mail.com&#10;user2@gmail.com:pass2:rec2@mail.com"></textarea>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 16px; font-size: 0.85rem; color: var(--text-s);">
-                        سعر الحساب المقدر: <strong id="estRateVal" style="color: var(--success);">$0.00</strong>
+                        Estimated price: <strong id="estRateVal" style="color: var(--success);">$0.00</strong>
                     </div>
 
                     <button type="submit" class="primary-btn" id="submitBtn">
                         <i class="fa-solid fa-check"></i>
-                        <span>إرسال للمراجعة</span>
+                        <span>Submit for Review</span>
                     </button>
                 </form>
             </div>
@@ -402,10 +403,10 @@
         <!-- 2. Submissions History View -->
         <section class="view-panel" id="panel-submissions">
             <div class="filter-bar">
-                <div class="chip active" onclick="filterSubmissions('all')">الكل</div>
-                <div class="chip" onclick="filterSubmissions('pending')">قيد المراجعة 🟡</div>
-                <div class="chip" onclick="filterSubmissions('approved')">مقبول 🟢</div>
-                <div class="chip" onclick="filterSubmissions('rejected')">مرفوض 🔴</div>
+                <div class="chip active" onclick="filterSubmissions('all', this)">All</div>
+                <div class="chip" onclick="filterSubmissions('pending', this)">Pending 🟡</div>
+                <div class="chip" onclick="filterSubmissions('approved', this)">Approved 🟢</div>
+                <div class="chip" onclick="filterSubmissions('rejected', this)">Rejected 🔴</div>
             </div>
             <div id="submissionsList"></div>
         </section>
@@ -415,7 +416,7 @@
             <div class="card">
                 <h3 class="card-title">
                     <i class="fa-solid fa-list-ol" style="color: var(--accent-purple);"></i>
-                    <span>قائمة أسعار الشراء الحالية</span>
+                    <span>Current Buy Rates</span>
                 </h3>
                 <div id="ratesList" style="display: flex; flex-direction: column; gap: 12px;"></div>
             </div>
@@ -426,14 +427,14 @@
             <div class="card">
                 <h3 class="card-title">
                     <i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent-purple);"></i>
-                    <span>طلب سحب الأرباح</span>
+                    <span>Withdraw Earnings</span>
                 </h3>
 
                 <form onsubmit="handleWithdrawSubmit(event)">
                     <div class="form-group">
-                        <label class="form-label">وسيلة الدفع / السحب</label>
+                        <label class="form-label">Payment Method</label>
                         <select class="form-select" id="withdrawMethod">
-                            <option value="Vodafone Cash">Vodafone Cash (فودافون كاش)</option>
+                            <option value="Vodafone Cash">Vodafone Cash</option>
                             <option value="USDT TRC20">USDT (TRC20)</option>
                             <option value="Payeer">Payeer</option>
                             <option value="Binance Pay">Binance Pay</option>
@@ -441,24 +442,24 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">رقم الموبايل / عنوان المحفظة</label>
+                        <label class="form-label">Phone Number / Wallet Address</label>
                         <input type="text" class="form-input" id="withdrawAddress" placeholder="010xxxxxxx / Wallet Address" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">المبلغ المطلوب بالدولار ($)</label>
-                        <input type="number" step="0.1" class="form-input" id="withdrawAmount" placeholder="الحد الأدنى: $1.0" required>
+                        <label class="form-label">Amount (USD)</label>
+                        <input type="number" step="0.1" class="form-input" id="withdrawAmount" placeholder="Min: $1.00" required>
                     </div>
 
                     <button type="submit" class="primary-btn" id="withdrawBtn">
                         <i class="fa-solid fa-paper-plane"></i>
-                        <span>تأكيد طلب السحب</span>
+                        <span>Submit Withdrawal Request</span>
                     </button>
                 </form>
             </div>
 
             <div class="card">
-                <h3 class="card-title">سجل طلبات السحب</h3>
+                <h3 class="card-title">Withdrawal History</h3>
                 <div id="withdrawHistoryList"></div>
             </div>
         </section>
@@ -467,9 +468,9 @@
         <section class="view-panel" id="panel-referral">
             <div class="card" style="text-align: center;">
                 <i class="fa-solid fa-gift" style="font-size: 3rem; color: var(--accent-purple); margin-bottom: 12px;"></i>
-                <h3 class="card-title" style="justify-content: center;">ربح من الإحالات</h3>
+                <h3 class="card-title" style="justify-content: center;">Referral Program</h3>
                 <p style="font-size: 0.85rem; color: var(--text-s); margin-bottom: 16px;">
-                    شارك رابطك الفريد مع أصدقائك واحصل على مكافأة لكل مستخدم جديد يسجل عبر رابطك!
+                    Share your unique link and earn a reward for every new user who joins through it!
                 </p>
 
                 <div class="form-group">
@@ -478,7 +479,7 @@
 
                 <button class="primary-btn" onclick="copyRefLink()">
                     <i class="fa-solid fa-copy"></i>
-                    <span>نسخ رابط الإحالة</span>
+                    <span>Copy Referral Link</span>
                 </button>
             </div>
         </section>
@@ -492,13 +493,24 @@
         let submissionsData = [];
         let activeFilter = 'all';
 
-        function initApp() {
-            // Apply Telegram color scheme
-            const scheme = tg.colorScheme || 'light';
+        const PAGE_TITLES = {
+            'submit': 'Submit Emails',
+            'submissions': 'My Submissions',
+            'rates': 'Buy Rates',
+            'withdraw': 'Withdraw Earnings',
+            'referral': 'Referral Program'
+        };
+
+        function applyTheme(scheme) {
             document.body.className = scheme === 'dark' ? 'dark-mode' : 'light-mode';
+        }
+
+        function initApp() {
+            applyTheme(tg.colorScheme || 'light');
+            // Listen for Telegram theme changes
+            tg.onEvent && tg.onEvent('themeChanged', () => applyTheme(tg.colorScheme || 'light'));
             document.getElementById('loader').classList.add('hide');
             const user = tg.initDataUnsafe?.user || { id: 1234567, first_name: 'Guest' };
-            document.getElementById('userAvatar').innerText = (user.first_name || 'U').charAt(0).toUpperCase();
             document.getElementById('refLinkInput').value = `https://t.me/NewGmailBuyerBot?start=${user.id}`;
             loadUserData();
         }
@@ -624,10 +636,10 @@
             }
         }
 
-        function filterSubmissions(status) {
+        function filterSubmissions(status, el) {
             activeFilter = status;
             document.querySelectorAll('.filter-bar .chip').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
+            el.classList.add('active');
             renderSubmissions();
         }
 
@@ -641,13 +653,13 @@
             }
 
             if (list.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-s);">لا توجد تسليمات حالياً</div>';
+                container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-s);">No submissions yet.</div>';
                 return;
             }
 
             list.forEach(item => {
                 const badgeClass = item.status === 'APPROVED' ? 'badge-approved' : (item.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
-                const badgeText = item.status === 'APPROVED' ? 'مقبول' : (item.status === 'REJECTED' ? 'مرفوض' : 'قيد المراجعة');
+                const badgeText = item.status === 'APPROVED' ? 'Approved' : (item.status === 'REJECTED' ? 'Rejected' : 'Pending');
                 container.innerHTML += `
                     <div class="sub-card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -655,10 +667,10 @@
                             <span class="badge ${badgeClass}">${badgeText}</span>
                         </div>
                         <div style="font-size:0.8rem; color:var(--text-s); display:flex; justify-content:space-between;">
-                            <span>الفئة: ${item.category_name}</span>
+                            <span>Category: ${item.category_name}</span>
                             <strong style="color: var(--success);">$${item.price.toFixed(2)}</strong>
                         </div>
-                        ${item.reject_reason ? `<div style="font-size:0.75rem; color:var(--error);">سبب الرفض: ${item.reject_reason}</div>` : ''}
+                        ${item.reject_reason ? `<div style="font-size:0.75rem; color:var(--error);">Rejection reason: ${item.reject_reason}</div>` : ''}
                     </div>
                 `;
             });
@@ -731,6 +743,9 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
             document.getElementById(`panel-${tabId}`).classList.add('active');
+            const navEl = document.getElementById(`nav-${tabId}`);
+            if (navEl) navEl.classList.add('active');
+            document.getElementById('pageTitle').innerText = PAGE_TITLES[tabId] || '';
             toggleSidebar(false);
         }
 
