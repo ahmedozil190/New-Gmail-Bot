@@ -9,13 +9,7 @@
     <title>Admin Dashboard - لوحة التحكم الشاملة</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        (function () {
-            const tg = window.Telegram.WebApp;
-            try { tg.expand(); } catch (e) { }
-            const isDark = tg.colorScheme === 'dark';
-            const bgColor = isDark ? '#111113' : '#ffffff';
-            document.write('<style>#loader { background: ' + bgColor + ' !important; }</style>');
-        })();
+        try { window.Telegram.WebApp.expand(); window.Telegram.WebApp.ready(); } catch(e){}
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">

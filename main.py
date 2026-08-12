@@ -47,7 +47,11 @@ elif os.path.exists("/data"):
 else:
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///app.db")
 
-WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:8000").rstrip("/")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:8000").strip().rstrip("/")
+if WEBAPP_URL and not WEBAPP_URL.startswith("http://") and not WEBAPP_URL.startswith("https://"):
+    WEBAPP_URL = "https://" + WEBAPP_URL
+elif WEBAPP_URL.startswith("http://") and "localhost" not in WEBAPP_URL:
+    WEBAPP_URL = WEBAPP_URL.replace("http://", "https://")
 PORT = int(os.getenv("PORT", "8000"))
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
