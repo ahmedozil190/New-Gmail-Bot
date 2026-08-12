@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional, List
 from urllib.parse import parse_qsl
 
-from dotenv import load_dotenv
+
 from sqlalchemy import (
     Column, Integer, String, Float, ForeignKey, DateTime, Enum, Boolean, BigInteger, select, func
 )

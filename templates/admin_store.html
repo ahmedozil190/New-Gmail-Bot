@@ -330,13 +330,13 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
+        const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : { initData: '', initDataUnsafe: {}, expand: function(){}, ready: function(){} };
         let adminSubmissions = [];
         let activeAdminFilter = 'PENDING';
 
         async function initAdmin() {
+            document.getElementById('loader').classList.add('hide');
             loadAdminData();
-            setTimeout(() => document.getElementById('loader').classList.add('hide'), 500);
         }
 
         async function loadAdminData() {

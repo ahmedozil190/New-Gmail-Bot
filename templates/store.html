@@ -820,7 +820,7 @@
     </main>
 
     <script>
-        const tg = window.Telegram.WebApp;
+        const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : { initData: '', initDataUnsafe: {}, expand: function(){}, ready: function(){} };
         let currentLang = 'ar';
         let submitMode = 'single';
         let categoriesData = [];
@@ -899,15 +899,12 @@
         };
 
         function initApp() {
+            document.getElementById('loader').classList.add('hide');
             const initData = tg.initData || '';
             const user = tg.initDataUnsafe?.user || { id: 1234567, first_name: 'Guest' };
             document.getElementById('userAvatar').innerText = (user.first_name || 'U').charAt(0).toUpperCase();
-            
-            // Set ref link
             document.getElementById('refLinkInput').value = `https://t.me/YourBotUsername?start=${user.id}`;
-            
             loadUserData();
-            setTimeout(() => document.getElementById('loader').classList.add('hide'), 500);
         }
 
         async function loadUserData() {
