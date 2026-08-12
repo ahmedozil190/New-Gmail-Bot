@@ -61,7 +61,12 @@
 
         ::-webkit-scrollbar { width: 7px; height: 7px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--accent-purple); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
 
         * {
             margin: 0; padding: 0; box-sizing: border-box;
@@ -258,7 +263,7 @@
     </style>
 </head>
 
-<body class="dark-mode">
+<body class="light-mode">
 
     <!-- Loader -->
     <div id="loader"><div class="spinner"></div></div>
@@ -488,6 +493,9 @@
         let activeFilter = 'all';
 
         function initApp() {
+            // Apply Telegram color scheme
+            const scheme = tg.colorScheme || 'light';
+            document.body.className = scheme === 'dark' ? 'dark-mode' : 'light-mode';
             document.getElementById('loader').classList.add('hide');
             const user = tg.initDataUnsafe?.user || { id: 1234567, first_name: 'Guest' };
             document.getElementById('userAvatar').innerText = (user.first_name || 'U').charAt(0).toUpperCase();
