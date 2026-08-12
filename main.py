@@ -25,7 +25,7 @@ from aiogram.types import (
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
 import uvicorn
 
@@ -209,8 +209,10 @@ def parse_tg_user(init_data: str) -> Optional[dict]:
 # 🔹 SECTION 4: FASTAPI WEB APP & API ROUTES
 # ==============================================================================
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
 app = FastAPI(title="Gmail Buying Bot WebApp")
-templates = Jinja2Templates(directory="templates")
 
 _bot_task = None
 
@@ -252,13 +254,15 @@ class CategoryModel(BaseModel):
     description: Optional[str] = ""
     price: float
 
-@app.get("/store", response_class=HTMLResponse)
-async def serve_store_page(request: Request):
-    return templates.TemplateResponse("store.html", {"request": request})
+@app.get("/store")
+async def serve_store_page():
+    path = os.path.join(TEMPLATES_DIR, "store.html")
+    return FileResponse(path)
 
-@app.get("/admin_store", response_class=HTMLResponse)
-async def serve_admin_page(request: Request):
-    return templates.TemplateResponse("admin_store.html", {"request": request})
+@app.get("/admin_store")
+async def serve_admin_page():
+    path = os.path.join(TEMPLATES_DIR, "admin_store.html")
+    return FileResponse(path)
 
 # ----------------- User API Endpoints -----------------
 
