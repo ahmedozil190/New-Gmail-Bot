@@ -34,8 +34,19 @@ import uvicorn
 # ==============================================================================
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8865432360:AAFq_NYL9aPNR8wxwlATdL08bJFiF6L6uZ4").strip()
-ADMIN_IDS = [8526602181]
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///app.db")
+
+ADMIN_IDS_RAW = os.getenv("ADMIN_IDS", "8526602181").strip()
+ADMIN_IDS = [int(x.strip()) for x in ADMIN_IDS_RAW.split(",") if x.strip().isdigit()]
+if not ADMIN_IDS:
+    ADMIN_IDS = [8526602181]
+
+if os.path.exists("/app/data"):
+    DATABASE_URL = "sqlite+aiosqlite:////app/data/app.db"
+elif os.path.exists("/data"):
+    DATABASE_URL = "sqlite+aiosqlite:////data/app.db"
+else:
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///app.db")
+
 WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:8000").rstrip("/")
 PORT = int(os.getenv("PORT", "8000"))
 
@@ -196,6 +207,16 @@ def parse_tg_user(init_data: str) -> Optional[dict]:
 
 app = FastAPI(title="Gmail Buying Bot WebApp")
 templates = Jinja2Templates(directory="templates")
+
+_bot_task = None
+
+@app.on_event("startup")
+async def on_startup():
+    global _bot_task
+    logger.info("Initializing database...")
+    await init_db()
+    logger.info("Starting Telegram Bot Polling in background...")
+    _bot_task = asyncio.create_task(dp.start_polling(bot))
 
 class SubmitItem(BaseModel):
     email: str
